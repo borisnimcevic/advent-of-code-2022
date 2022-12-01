@@ -2,17 +2,14 @@
 #include <iostream>
 
 int main() {
-  std::ifstream file("../input.txt");
+  const std::ifstream file("../input.txt");
 
   if (!file) {
     std::cerr << "Cannot find the file." << std::endl;
   }
 
   std::string line;
-  int sum = 0;
-  int max1 = 0;
-  int max2 = 0;
-  int max3 = 0;
+  int sum = 0, max1 = 0, max2 = 0, max3 = 0;
   while (std::getline(file, line)) {
     if (line == "") {
       if (sum > max1) {
