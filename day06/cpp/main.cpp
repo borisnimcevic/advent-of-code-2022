@@ -32,6 +32,26 @@ int main() {
 
   std::string line;
   std::getline(file, line);
-  std::cout << "part one: " << findMatch(&line, 4) << std::endl;
-  std::cout << "part two: " << findMatch(&line, 14) << std::endl;
+  auto start = std::chrono::high_resolution_clock::now();
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto overhead =
+      std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+  std::cout << "timing overhead = " << overhead.count() << "microseconds"
+            << std::endl;
+
+  start = std::chrono::high_resolution_clock::now();
+  const auto part1 = findMatch(&line, 4);
+  stop = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+      stop - start - overhead);
+  std::cout << "part one: " << part1 << ", duration: " << duration.count()
+            << " microseconds" << std::endl;
+
+  start = std::chrono::high_resolution_clock::now();
+  const auto part2 = findMatch(&line, 14);
+  stop = std::chrono::high_resolution_clock::now();
+  duration = std::chrono::duration_cast<std::chrono::microseconds>(
+      stop - start - overhead);
+  std::cout << "part two: " << part2 << ", duration: " << duration.count()
+            << " microseconds" << std::endl;
 }
