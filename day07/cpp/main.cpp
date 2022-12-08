@@ -2,18 +2,26 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <map>
 
 class Dir {
 public:
   Dir *parent;
   std::string name;
   std::vector<Dir *> children;
-  std::vector<uint64_t> values;
+  std::vector<std::map<std::string, uint64_t>> files;
 
   Dir(std::string name1) { name = name1; }
 };
 
-void addChild(Dir **head_ref, std::string dir_name) {
+void addChild(Dir *current, std::string dir_name) {
+  // std::cout << "Adding child " << dir_name << " to " << current->name << std::endl;
+  Dir *new_dir = new Dir(dir_name);
+  new_dir->parent = current;
+  current->children.push_back(new_dir);
+}
+
+void addAndGoToChild(Dir **head_ref, std::string dir_name) {
   // std::cout << "Adding child " << dir_name << std::endl;
   Dir *new_dir = new Dir(dir_name);
 
@@ -45,14 +53,15 @@ bool dirExists(Dir *current, std::string word) {
   return false;
 }
 
-void goToChild(Dir *current, std::string word) {
+Dir* goToChild(Dir *current, std::string word) {
   // std::cout << "Going to child " << word << std::endl;
   for (auto child : current->children) {
     if (child->name == word) {
-      current = child;
-      return;
+      // current = child;
+      return child;
     }
   }
+  return nullptr;
 }
 
 void printDFS(Dir *dir, int indent) {
@@ -84,8 +93,8 @@ void printDirs(Dir *head) {
 }
 
 int main() {
-  // std::ifstream file("../test.txt");
-  std::ifstream file("../input.txt");
+  std::ifstream file("../test.txt");
+  // std::ifstream file("../input.txt");
 
   if (!file) {
     std::cerr << "Cannot find the file." << std::endl;
@@ -109,14 +118,21 @@ int main() {
             current = current->parent;
           } else {
             if (!dirExists(current, word)) {
-              addChild(&current, word);
+              addAndGoToChild(&current, word);
             } else {
-              goToChild(current, word);
+              current = goToChild(current, word);
             }
           }
         }
       }
 
+      else if (word == "dir") {
+        ss >> word;
+        if (!dirExists(current, word)) {
+          addChild(current, word);
+        }
+      }
+      // else
       // std::cout << word << std::endl;
     }
   }
