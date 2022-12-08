@@ -1,8 +1,12 @@
 #include <fstream>
 #include <iostream>
+#include <ostream>
 #include <sstream>
 #include <tuple>
 #include <vector>
+
+std::vector<uint64_t> sizes;
+const uint32_t limit = 100000;
 
 class Dir {
 public:
@@ -103,6 +107,40 @@ void printDirs(Dir *head) {
   printDFS(head, indent);
 }
 
+uint64_t smallFiles(Dir *dir) {
+  if (dir->children.size() == 0) {
+    uint64_t sum = 0;
+
+    for (auto file : dir->files) {
+      sum += std::get<1>(file);
+    }
+
+    if (sum <= limit) {
+      sizes.push_back(sum);
+    }
+    return sum;
+  }
+
+  uint64_t sum = 0;
+  for (auto child : dir->children) {
+    sum += smallFiles(child);
+  }
+  for (auto file : dir->files) {
+    sum += std::get<1>(file);
+  }
+  if (sum <= limit) {
+    sizes.push_back(sum);
+  }
+  return sum;
+}
+
+uint64_t sumSizes(Dir *head) {
+  while (head->parent != nullptr) {
+    head = head->parent;
+  }
+
+  return smallFiles(head);
+}
 int main() {
   // std::ifstream file("../test.txt");
   std::ifstream file("../input.txt");
@@ -153,5 +191,11 @@ int main() {
       }
     }
   }
-  printDirs(current);
+  // printDirs(current);
+  std::cout << sumSizes(current) << std::endl;
+  uint64_t sum = 0;
+  for (auto num : sizes) {
+    sum += num;
+  }
+  std::cout << sum << std::endl;
 }
