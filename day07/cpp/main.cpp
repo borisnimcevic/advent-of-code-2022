@@ -1,21 +1,22 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <tuple>
 #include <vector>
-#include <map>
 
 class Dir {
 public:
   Dir *parent;
   std::string name;
   std::vector<Dir *> children;
-  std::vector<std::map<std::string, uint64_t>> files;
+  std::vector<std::tuple<std::string, uint64_t>> files;
 
   Dir(std::string name1) { name = name1; }
 };
 
 void addChild(Dir *current, std::string dir_name) {
-  // std::cout << "Adding child " << dir_name << " to " << current->name << std::endl;
+  // std::cout << "Adding child " << dir_name << " to " << current->name <<
+  // std::endl;
   Dir *new_dir = new Dir(dir_name);
   new_dir->parent = current;
   current->children.push_back(new_dir);
@@ -53,7 +54,7 @@ bool dirExists(Dir *current, std::string word) {
   return false;
 }
 
-Dir* goToChild(Dir *current, std::string word) {
+Dir *goToChild(Dir *current, std::string word) {
   // std::cout << "Going to child " << word << std::endl;
   for (auto child : current->children) {
     if (child->name == word) {
@@ -64,12 +65,21 @@ Dir* goToChild(Dir *current, std::string word) {
   return nullptr;
 }
 
+void printFiles(Dir *dir, int indent) {
+  for (auto file : dir->files) {
+    for (int i = 0; i < indent; i++) {
+      std::cout << " ";
+    }
+    std::cout << std::get<1>(file) << " " << std::get<0>(file) << std::endl;
+  }
+}
 void printDFS(Dir *dir, int indent) {
   if (dir->children.size() == 0) {
     for (int i = 0; i < indent; i++) {
       std::cout << " ";
     }
-    std::cout << dir->name << std::endl;
+    std::cout << dir->name << ":" << std::endl;
+    printFiles(dir, indent);
     return;
   }
 
@@ -80,7 +90,8 @@ void printDFS(Dir *dir, int indent) {
   for (int i = 0; i < indent; i++) {
     std::cout << " ";
   }
-  std::cout << dir->name << std::endl;
+  std::cout << dir->name << ":" << std::endl;
+  printFiles(dir, indent);
 }
 
 void printDirs(Dir *head) {
@@ -93,8 +104,8 @@ void printDirs(Dir *head) {
 }
 
 int main() {
-  std::ifstream file("../test.txt");
-  // std::ifstream file("../input.txt");
+  // std::ifstream file("../test.txt");
+  std::ifstream file("../input.txt");
 
   if (!file) {
     std::cerr << "Cannot find the file." << std::endl;
@@ -132,8 +143,14 @@ int main() {
           addChild(current, word);
         }
       }
-      // else
-      // std::cout << word << std::endl;
+
+      else {
+        uint64_t temp_num = std::stoi(word);
+        ss >> word;
+        std::tuple<std::string, uint64_t> temp_tuple;
+        temp_tuple = std::make_tuple(word, temp_num);
+        current->files.push_back(temp_tuple);
+      }
     }
   }
   printDirs(current);
