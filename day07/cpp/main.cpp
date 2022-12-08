@@ -6,7 +6,10 @@
 #include <vector>
 
 std::vector<uint64_t> sizes;
+std::vector<uint64_t> all_sizes;
 const uint32_t limit = 100000;
+const uint64_t total_space = 70000000;
+const uint64_t needed_space = 30000000;
 
 class Dir {
 public:
@@ -118,6 +121,7 @@ uint64_t smallFiles(Dir *dir) {
     if (sum <= limit) {
       sizes.push_back(sum);
     }
+    all_sizes.push_back(sum);
     return sum;
   }
 
@@ -131,6 +135,8 @@ uint64_t smallFiles(Dir *dir) {
   if (sum <= limit) {
     sizes.push_back(sum);
   }
+
+  all_sizes.push_back(sum);
   return sum;
 }
 
@@ -192,10 +198,20 @@ int main() {
     }
   }
   // printDirs(current);
-  std::cout << sumSizes(current) << std::endl;
-  uint64_t sum = 0;
-  for (auto num : sizes) {
-    sum += num;
+  uint64_t current_space = sumSizes(current);
+  std::cout << "current_space " << current_space << std::endl;
+  uint64_t missing = needed_space - (total_space - current_space);
+  std::cout << "missing " << missing << std::endl;
+  // uint64_t sum = 0;
+  // for (auto num : sizes) {
+  //   sum += num;
+  // }
+  // std::cout << sum << std::endl;
+  sort(all_sizes.begin(), all_sizes.end());
+  for (auto num : all_sizes) {
+    if (num >= missing) {
+      std::cout << "to delete " <<  num << std::endl;
+      break;
+    }
   }
-  std::cout << sum << std::endl;
 }
