@@ -25,8 +25,7 @@ void printField(std::vector<std::vector<bool>> field) {
 }
 
 void updateField(std::vector<std::vector<bool>> *field, const std::vector<point> * const knots) {
-  const uint8_t index = 9;
-  field->at(knots->at(index).x).at(knots->at(index).y) = true;
+  field->at(knots->back().x).at(knots->back().y) = true;
 }
 
 void adjustKnot(point *const H, point *const T) {
