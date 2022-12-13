@@ -10,7 +10,11 @@ public:
   uint64_t num;
   std::vector<List *> items;
   bool isList;
+  bool isDecoder = false;
+  bool god = false;
 };
+
+std::vector<List *> all_items;
 
 enum status {
   KEEP_GOING,
@@ -41,7 +45,9 @@ void parseLine(std::istringstream *ss, List *parent_list) {
 
 void printList(List *my_list) {
   if (my_list->isList) {
-    std::cout << " > ";
+    if (!my_list->god) {
+      std::cout << "[";
+    }
     for (size_t i = 0; i < my_list->items.size(); i++) {
       printList(my_list->items.at(i));
     }
@@ -49,12 +55,13 @@ void printList(List *my_list) {
     std::cout << " " << my_list->num << " ";
     return;
   }
-  std::cout << " < ";
+  if (!my_list->god) {
+    std::cout << "]";
+  }
 }
 
 void convertToList(List *my_list) {
   uint64_t temp_num = my_list->num;
-  my_list->num = 9999;
   my_list->isList = true;
   List *new_list = new List;
   new_list->isList = false;
@@ -62,13 +69,31 @@ void convertToList(List *my_list) {
   my_list->items.push_back(new_list);
 }
 
+void unconvertList(List *my_list) {
+  my_list->isList = false;
+  my_list->items.clear();
+}
+
 status correnctInputs(List *left_list, List *right_list) {
+  bool left_changed = false;
+  bool right_changed = false;
+  status outcome;
   if (!left_list->isList) {
     convertToList(left_list);
+    left_changed = true;
   } else {
     convertToList(right_list);
+    right_changed = true;
   }
-  return compareSides(left_list, right_list);
+  outcome = compareSides(left_list, right_list);
+  if (left_changed) {
+    unconvertList(left_list);
+  }
+  if (right_changed) {
+    unconvertList(right_list);
+  }
+
+  return outcome;
 }
 
 status compareSides(List *left_list, List *right_list) {
@@ -116,9 +141,33 @@ status compareSides(List *left_list, List *right_list) {
   return KEEP_GOING;
 }
 
+void swap(List **left, List **right) {
+  List *temp = *left;
+  *left = *right;
+  *right = temp;
+}
+
+void bubbleSortList(std::vector<List *> *long_list) {
+  const size_t N = long_list->size();
+  bool change = true;
+  while (change) {
+    change = false;
+    for (size_t i = 0; i < N - 1; i++) {
+      status outcome = compareSides(long_list->at(i)->items.at(0),
+                                    long_list->at(i + 1)->items.at(0));
+      if (outcome != GOOD) {
+        change = true;
+        swap(&long_list->at(i), &long_list->at(i + 1));
+      }
+    }
+  }
+}
+
 int main() {
-  // std::ifstream file("../test.txt");
-  std::ifstream file("../input.txt");
+  // std::ifstream file("../test-pt1.txt");
+  // std::ifstream file("../test-pt2.txt");
+  // std::ifstream file("../input-pt1.txt");
+  std::ifstream file("../input-pt2.txt");
 
   if (!file) {
     std::cerr << "Cannot find the file." << std::endl;
@@ -131,43 +180,50 @@ int main() {
   std::vector<uint64_t> summary;
   while (std::getline(file, left_line)) {
     counter++;
-    std::cout << "counter = " << counter << std::endl;
     // left
     std::istringstream left_stream(left_line);
     List *left_list = new List;
+    left_list->god = true;
     left_list->isList = true;
     parseLine(&left_stream, left_list);
-    printList(left_list);
-    std::cout << std::endl;
 
     // right
     std::getline(file, right_line);
     std::istringstream right_stream(right_line);
     List *right_list = new List;
+    right_list->god = true;
     right_list->isList = true;
     parseLine(&right_stream, right_list);
-    printList(right_list);
-    std::cout << std::endl;
 
+    // space
     std::getline(file, space_line);
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    status good = compareSides(left_list, right_list);
-    if (good == KEEP_GOING) {
-      std::cout << "keep going" << std::endl;
-    }
+    status good = compareSides(left_list->items.at(0), right_list->items.at(0));
     if (good == GOOD) {
       summary.push_back(counter);
-      std::cout << "good" << std::endl;
     }
-    if (good == BAD) {
-      std::cout << "bad" << std::endl;
-    }
+
+    all_items.push_back(left_list);
+    all_items.push_back(right_list);
   }
 
   uint64_t sum = 0;
   for (auto var : summary) {
     sum += var;
   }
-  std::cout << "sum = " << sum << std::endl;
+  std::cout << "Part 1 = " << sum << std::endl;
+
+  all_items.at(all_items.size() - 1)->isDecoder = true;
+  all_items.at(all_items.size() - 2)->isDecoder = true;
+
+  bubbleSortList(&all_items);
+
+  uint64_t pt2 = 1;
+  for (size_t i = 0; i < all_items.size(); i++) {
+    if (all_items.at(i)->isDecoder) {
+      pt2 *= i + 1;
+    }
+  }
+  std::cout << "Part 2 = " << pt2 << std::endl;
 }
