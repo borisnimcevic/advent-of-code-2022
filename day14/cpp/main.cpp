@@ -3,12 +3,21 @@
 #include <sstream>
 #include <vector>
 
+enum status {
+  FALLING,
+  STUCK,
+  SATURATED,
+};
+
 typedef struct {
   uint width;
   uint debth;
 } position_t;
 
 std::vector<std::vector<char>> field;
+uint64_t offset = std::numeric_limits<uint64_t>::max();
+uint64_t width_max = 0;
+uint64_t debth_max = 0;
 
 void createField(const uint64_t col, const uint64_t row) {
   std::vector<char> temp_row;
@@ -60,6 +69,90 @@ void drawLine(const position_t current_pos, const position_t target_pos) {
   }
 }
 
+bool isDownAvailable(position_t *current_position) {
+  if (field.at(current_position->debth + 1).at(current_position->width) ==
+      '.') {
+    return true;
+  }
+  return false;
+}
+
+bool isLeftAvailable(position_t *current_position) {
+  if (field.at(current_position->debth + 1).at(current_position->width - 1) ==
+      '.') {
+    return true;
+  }
+  return false;
+}
+
+bool isRightAvailable(position_t *current_position) {
+  if (field.at(current_position->debth + 1).at(current_position->width + 1) ==
+      '.') {
+    return true;
+  }
+  return false;
+}
+void moveDown(position_t *current_position) { current_position->debth++; }
+void moveLeft(position_t *current_position) {
+  current_position->debth++;
+  current_position->width--;
+}
+
+void moveRight(position_t *current_position) {
+  current_position->debth++;
+  current_position->width++;
+}
+
+status moveSand(position_t *current_position) {
+  if (current_position->debth > debth_max) {
+    return SATURATED;
+  }
+
+  if (isDownAvailable(current_position)) {
+    moveDown(current_position);
+    return FALLING;
+  }
+
+  if (isLeftAvailable(current_position)) {
+    moveLeft(current_position);
+    return FALLING;
+  }
+
+  if (isRightAvailable(current_position)) {
+    moveRight(current_position);
+    return FALLING;
+  }
+  return STUCK;
+}
+
+void dropSand(const position_t start_position) {
+  status sand_status = FALLING;
+  while (sand_status != SATURATED) {
+    position_t current_position = start_position;
+    sand_status = FALLING;
+    while (sand_status == FALLING) {
+      sand_status = moveSand(&current_position);
+    }
+    if (sand_status == STUCK) {
+      field.at(current_position.debth).at(current_position.width) = 'o';
+    }
+    // printField();
+    // std::cout << std::endl;
+  }
+}
+
+uint64_t countSand() {
+  uint64_t sum = 0;
+  for (auto row : field) {
+    for (auto col : row) {
+      if (col == 'o') {
+        sum++;
+      }
+    }
+  }
+  return sum;
+}
+
 int main() {
   // std::string file_path = "../test.txt";
   std::string file_path = "../input.txt";
@@ -69,10 +162,6 @@ int main() {
   if (!file) {
     std::cerr << "Cannot find the file." << std::endl;
   }
-
-  uint64_t offset = std::numeric_limits<uint64_t>::max();
-  uint64_t width_max = 0;
-  uint64_t debth_max = 0;
 
   std::string line;
   while (std::getline(file, line)) {
@@ -121,4 +210,17 @@ int main() {
     }
   }
   printField();
+
+  position_t start_position;
+  start_position.debth = 0;
+  start_position.width = 500 - offset;
+  dropSand(start_position);
+  std::cout << "sand at rest = " << countSand() << std::endl;
+  printField();
 }
+
+
+
+
+
+
