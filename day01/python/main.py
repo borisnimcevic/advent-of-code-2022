@@ -25,6 +25,8 @@ def find_sum_of_numbers(number_arrays):
         return None
     sum_of_number_arrays = []
     for numbers in number_arrays:
+        if any(not isinstance(number, int) for number in numbers):
+            raise ValueError("Input must be an array of integers.")
         sum_of_numbers = sum(numbers)
         sum_of_number_arrays.append(sum_of_numbers)
     return sum_of_number_arrays
