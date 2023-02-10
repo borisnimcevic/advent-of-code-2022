@@ -1,37 +1,52 @@
 def read_file_contents(file_path):
-    all_numbers = []
+    number_arrays = []
     numbers = []
-    # Loop through each line in the file
-    with open(file_path, "r") as file:
-        for line in file:
-            # Check if the line is empty
-            if line.strip() == "":
-                all_numbers.append(numbers)
-                numbers = []
-            else:
-                number = int(line.strip())
-                numbers.append(number)
+    try:
+        with open(file_path, "r") as file:
+            for line in file:
+                if line.strip() == "":
+                    number_arrays.append(numbers)
+                    numbers = []
+                else:
+                    number = int(line.strip())
+                    numbers.append(number)
+            if numbers:
+                number_arrays.append(numbers)
+        return number_arrays
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+        return None
+    except ValueError as e:
+        print(f"Error parsing the file contents: {e}")
+        return None
 
-    # Append the last array of numbers to the list of arrays, if there is any
-    if numbers:
-        all_numbers.append(numbers)
-    return all_numbers
-
-def find_sum_of_numbers(all_numbers):
-    all_sums = []
-    for numbers in all_numbers:
+def find_sum_of_numbers(number_arrays):
+    if not number_arrays:
+        return None
+    sum_of_number_arrays = []
+    for numbers in number_arrays:
         sum_of_numbers = sum(numbers)
-        all_sums.append(sum_of_numbers)
-    return all_sums
+        sum_of_number_arrays.append(sum_of_numbers)
+    return sum_of_number_arrays
 
-def find_maximum_number(all_sums):
-    return max(all_sums)
+def find_maximum_number(sum_of_number_arrays):
+    if not sum_of_number_arrays:
+        return None
+    if not all(isinstance(i, int) for i in sum_of_number_arrays):
+        raise ValueError("Input must be an array of integers.")
+    return max(sum_of_number_arrays)
 
 if __name__ == "__main__":
     input_file = "../input.txt"
     # input_file = "../test.txt"
-    all_numbers = read_file_contents(input_file)
-    all_sums = find_sum_of_numbers(all_numbers)
-    max_number = find_maximum_number(all_sums)
+    number_arrays = read_file_contents(input_file)
+    if number_arrays is None:
+        exit()
+    sum_of_number_arrays = find_sum_of_numbers(number_arrays)
+    if sum_of_number_arrays is None:
+        exit()
+    max_number = find_maximum_number(sum_of_number_arrays)
+    if max_number is None:
+        exit()
     print("Max number: ", max_number)
 
